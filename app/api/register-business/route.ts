@@ -42,6 +42,7 @@ export async function POST(req: Request) {
                     username,
                     passwordHash,
                     role: 'MANAGER',
+                    designation: 'Owner',
                     businessId: business.id,
                     isActive: true
                 }
