@@ -35,6 +35,7 @@ export default function RegisterBusinessPage() {
             const data = await res.json()
             if (!res.ok) {
                 setError(data.error || 'Registration failed')
+                console.error('Registration server error:', data.error)
             } else {
                 router.push('/login?registered=true')
             }
