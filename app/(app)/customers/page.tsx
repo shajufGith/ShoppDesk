@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface Customer {
     id: string; customerNumber: string; name: string
@@ -25,17 +25,17 @@ export default function CustomersPage() {
 
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
 
-    function load() {
+    const load = useCallback(() => {
         const q = search ? `?search=${encodeURIComponent(search)}` : ''
         fetch(`/api/customers${q}`).then(r => r.json()).then(setCustomers)
-    }
+    }, [search])
 
     useEffect(() => {
         fetch('/api/segments').then(r => r.json()).then(setSegments)
         fetch('/api/settings').then(r => r.json()).then((s: any) => { if (s?.customerIdMode) setIdMode(s.customerIdMode) })
     }, [])
 
-    useEffect(() => { load() }, [search])
+    useEffect(() => { load() }, [load])
 
     function openCreate() { setEditing(null); setForm({ ...EMPTY }); setError(''); setModal(true) }
     function openEdit(c: Customer) {

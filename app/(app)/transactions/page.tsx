@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useCallback, useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 interface Customer { id: string; customerNumber: string; name: string }
@@ -29,12 +29,12 @@ function TransactionsInner() {
 
     useEffect(() => { fetch('/api/customers').then(r => r.json()).then(setCustomers) }, [])
 
-    function loadTxns() {
+    const loadTxns = useCallback(() => {
         const params = new URLSearchParams({ type: tab })
         if (filterCust) params.set('customerId', filterCust)
         fetch(`/api/transactions?${params}`).then(r => r.json()).then(setTxns)
-    }
-    useEffect(() => { loadTxns() }, [tab, filterCust])
+    }, [tab, filterCust])
+    useEffect(() => { loadTxns() }, [loadTxns])
 
     function openCreate() { setEditTxn(null); setForm({ customerId: filterCust || preCustomerId, amount: '', date: new Date().toISOString().split('T')[0], note: '' }); setError(''); setModal(true) }
     function openEdit(t: TxnRow) { setEditTxn(t); setForm({ customerId: t.customer.customerNumber, amount: String(t.amount), date: t.date.split('T')[0], note: t.note ?? '' }); setError(''); setModal(true) }
