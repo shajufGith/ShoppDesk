@@ -24,9 +24,20 @@ export default function SettingsPage() {
 
     useEffect(() => {
         if (isManager) {
-            fetch('/api/settings').then(r => r.json()).then(setSettings)
-            fetch('/api/segments').then(r => r.json()).then(setSegments)
-            fetch('/api/areas').then(r => r.json()).then(setAreas)
+            fetch('/api/settings')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => data && setSettings(data))
+                .catch(() => { })
+
+            fetch('/api/segments')
+                .then(r => r.ok ? r.json() : [])
+                .then(data => Array.isArray(data) && setSegments(data))
+                .catch(() => { })
+
+            fetch('/api/areas')
+                .then(r => r.ok ? r.json() : [])
+                .then(data => Array.isArray(data) && setAreas(data))
+                .catch(() => { })
         }
     }, [isManager])
 

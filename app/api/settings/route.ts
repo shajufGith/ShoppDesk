@@ -9,9 +9,21 @@ export async function GET() {
     if (session.user.role !== 'MANAGER')
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const settings = await prisma.appSettings.findUnique({
+    let settings = await prisma.appSettings.findUnique({
         where: { businessId: session.user.businessId }
     })
+
+    if (!settings) {
+        settings = await prisma.appSettings.create({
+            data: {
+                businessId: session.user.businessId,
+                customerIdMode: 'AUTO',
+                customerPrefix: 'CUST',
+                nextAutoNumber: 1
+            }
+        })
+    }
+
     return NextResponse.json(settings)
 }
 
@@ -24,12 +36,18 @@ export async function PATCH(req: NextRequest) {
 
     const { customerIdMode, customerPrefix } = await req.json()
 
-    const settings = await prisma.appSettings.update({
+    const settings = await prisma.appSettings.upsert({
         where: { businessId: session.user.businessId },
-        data: {
+        update: {
             ...(customerIdMode ? { customerIdMode } : {}),
             ...(customerPrefix ? { customerPrefix } : {}),
         },
+        create: {
+            businessId: session.user.businessId,
+            customerIdMode: customerIdMode || 'AUTO',
+            customerPrefix: customerPrefix || 'CUST',
+            nextAutoNumber: 1
+        }
     })
     return NextResponse.json(settings)
 }
