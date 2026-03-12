@@ -29,6 +29,7 @@ export const authOptions: NextAuthOptions = {
                     username: user.username,
                     role: user.role as 'MANAGER' | 'EMPLOYEE',
                     designation: user.designation ?? '',
+                    businessId: user.businessId,
                 }
             },
         }),
@@ -39,6 +40,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id
                 token.role = (user as any).role
                 token.designation = (user as any).designation
+                token.businessId = (user as any).businessId
             }
             return token
         },
@@ -47,6 +49,7 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string
                 session.user.role = token.role as 'MANAGER' | 'EMPLOYEE'
                 session.user.designation = token.designation as string
+                session.user.businessId = token.businessId as string
             }
             return session
         },

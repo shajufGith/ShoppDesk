@@ -6,14 +6,17 @@ interface Customer {
     id: string; customerNumber: string; name: string
     address1: string; address2?: string; mobile: string; isActive: boolean
     segment?: { id: string; name: string }
+    area?: { id: string; name: string }
 }
 interface Segment { id: string; name: string }
+interface Area { id: string; name: string }
 
-const EMPTY = { name: '', address1: '', address2: '', mobile: '', segmentId: '', customerNumber: '' }
+const EMPTY = { name: '', address1: '', address2: '', mobile: '', segmentId: '', areaId: '', customerNumber: '' }
 
 export default function CustomersPage() {
     const [customers, setCustomers] = useState<Customer[]>([])
     const [segments, setSegments] = useState<Segment[]>([])
+    const [areas, setAreas] = useState<Area[]>([])
     const [search, setSearch] = useState('')
     const [modal, setModal] = useState(false)
     const [editing, setEditing] = useState<Customer | null>(null)
@@ -32,6 +35,7 @@ export default function CustomersPage() {
 
     useEffect(() => {
         fetch('/api/segments').then(r => r.json()).then(setSegments)
+        fetch('/api/areas').then(r => r.json()).then(setAreas)
         fetch('/api/settings').then(r => r.json()).then((s: any) => { if (s?.customerIdMode) setIdMode(s.customerIdMode) })
     }, [])
 
@@ -40,7 +44,15 @@ export default function CustomersPage() {
     function openCreate() { setEditing(null); setForm({ ...EMPTY }); setError(''); setModal(true) }
     function openEdit(c: Customer) {
         setEditing(c)
-        setForm({ name: c.name, address1: c.address1, address2: c.address2 ?? '', mobile: c.mobile, segmentId: c.segment?.id ?? '', customerNumber: c.customerNumber })
+        setForm({
+            name: c.name,
+            address1: c.address1,
+            address2: c.address2 ?? '',
+            mobile: c.mobile,
+            segmentId: c.segment?.id ?? '',
+            areaId: c.area?.id ?? '',
+            customerNumber: c.customerNumber
+        })
         setError(''); setModal(true)
     }
 
@@ -95,7 +107,11 @@ export default function CustomersPage() {
                                 </div>
                             </div>
                             <div className="text-muted text-sm">{c.address1}{c.address2 ? `, ${c.address2}` : ''}</div>
-                            <div className="text-sm" style={{ marginTop: '0.25rem' }}>📞 {c.mobile}{c.segment && <span className="badge badge-yellow" style={{ marginLeft: '0.5rem' }}>{c.segment.name}</span>}</div>
+                            <div className="text-sm" style={{ marginTop: '0.25rem' }}>
+                                📞 {c.mobile}
+                                {c.segment && <span className="badge badge-yellow" style={{ marginLeft: '0.5rem' }}>{c.segment.name}</span>}
+                                {c.area && <span className="badge" style={{ marginLeft: '0.5rem', background: '#e0f2fe', color: '#0369a1' }}>📍 {c.area.name}</span>}
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -138,12 +154,21 @@ export default function CustomersPage() {
                                 <label className="form-label">Address 2</label>
                                 <input className="form-input" placeholder="City / Landmark" value={form.address2} onChange={e => setForm(f => ({ ...f, address2: e.target.value }))} />
                             </div>
-                            <div className="form-group">
-                                <label className="form-label">Segment</label>
-                                <select className="form-select" value={form.segmentId} onChange={e => setForm(f => ({ ...f, segmentId: e.target.value }))}>
-                                    <option value="">-- None --</option>
-                                    {segments.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
+                            <div className="form-grid form-grid-2">
+                                <div className="form-group">
+                                    <label className="form-label">Segment</label>
+                                    <select className="form-select" value={form.segmentId} onChange={e => setForm(f => ({ ...f, segmentId: e.target.value }))}>
+                                        <option value="">-- None --</option>
+                                        {segments.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Area</label>
+                                    <select className="form-select" value={form.areaId} onChange={e => setForm(f => ({ ...f, areaId: e.target.value }))}>
+                                        <option value="">-- None --</option>
+                                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                    </select>
+                                </div>
                             </div>
                             {error && <p className="form-error">{error}</p>}
                             <button id="save-customer-btn" className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}>

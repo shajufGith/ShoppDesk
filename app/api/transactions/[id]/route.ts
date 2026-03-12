@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getBusinessSession, unauthorizedResponse } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getBusinessSession()
+    if (!session) return unauthorizedResponse()
 
     const { amount, date, note } = await req.json()
+
+    // Ensure the transaction belongs to the business
+    const existing = await prisma.transaction.findFirst({
+        where: { id: params.id, businessId: session.user.businessId }
+    })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
     const txn = await prisma.transaction.update({
         where: { id: params.id },
         data: {
@@ -24,8 +30,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: { id: string } }) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getBusinessSession()
+    if (!session) return unauthorizedResponse()
+
+    // Ensure the transaction belongs to the business
+    const existing = await prisma.transaction.findFirst({
+        where: { id: params.id, businessId: session.user.businessId }
+    })
+    if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
     await prisma.transaction.delete({ where: { id: params.id } })
     return NextResponse.json({ success: true })
 }

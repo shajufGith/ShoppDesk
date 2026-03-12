@@ -6,11 +6,11 @@ export async function GET() {
     const session = await getBusinessSession()
     if (!session) return unauthorizedResponse()
 
-    const segments = await prisma.customerSegment.findMany({
+    const areas = await prisma.customerArea.findMany({
         where: { businessId: session.user.businessId },
         orderBy: { name: 'asc' }
     })
-    return NextResponse.json(segments)
+    return NextResponse.json(areas)
 }
 
 export async function POST(req: NextRequest) {
@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
     const { name } = await req.json()
     if (!name) return NextResponse.json({ error: 'Name required' }, { status: 400 })
 
-    const segment = await prisma.customerSegment.create({
+    const area = await prisma.customerArea.create({
         data: {
             name,
             businessId: session.user.businessId
         }
     })
-    return NextResponse.json(segment, { status: 201 })
+    return NextResponse.json(area, { status: 201 })
 }

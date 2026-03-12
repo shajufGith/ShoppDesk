@@ -5,6 +5,7 @@ declare module 'next-auth' {
         id: string
         role: 'MANAGER' | 'EMPLOYEE'
         designation: string
+        businessId: string
     }
 
     interface Session {
@@ -13,6 +14,7 @@ declare module 'next-auth' {
             name: string
             role: 'MANAGER' | 'EMPLOYEE'
             designation: string
+            businessId: string
         }
     }
 }
@@ -22,5 +24,6 @@ declare module 'next-auth/jwt' {
         id: string
         role: 'MANAGER' | 'EMPLOYEE'
         designation: string
+        businessId: string
     }
 }

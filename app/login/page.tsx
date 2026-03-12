@@ -84,6 +84,12 @@ export default function LoginPage() {
                 >
                     {loading ? <span className="spinner" style={{ width: 20, height: 20 }} /> : 'Sign In'}
                 </button>
+
+                <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                        New to ShopDesk? <a href="/register-business" style={{ color: 'var(--brand-primary)', fontWeight: 600, textDecoration: 'none' }}>Register Business</a>
+                    </p>
+                </div>
             </form>
 
             <p style={styles.footer}>ShopDesk v1.0</p>

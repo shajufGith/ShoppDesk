@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getBusinessSession, unauthorizedResponse } from '@/lib/session'
 import { prisma } from '@/lib/prisma'
-import { Decimal } from '@prisma/client/runtime/library'
 
-// GET /api/reports?type=statement|sales|collection|due&from=&to=&customerId=&segmentId=
+// GET /api/reports?type=statement|sales|collection|due&from=&to=&customerId=&segmentId=&areaId=
 export async function GET(req: NextRequest) {
-    const session = await getServerSession(authOptions)
-    if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const session = await getBusinessSession()
+    if (!session) return unauthorizedResponse()
 
     const { searchParams } = new URL(req.url)
     const type = searchParams.get('type') ?? 'statement'
@@ -15,6 +13,9 @@ export async function GET(req: NextRequest) {
     const to = searchParams.get('to')
     const customerId = searchParams.get('customerId') ?? undefined
     const segmentId = searchParams.get('segmentId') ?? undefined
+    const areaId = searchParams.get('areaId') ?? undefined
+
+    const businessId = session.user.businessId
 
     const dateFilter = (from || to) ? {
         date: {
@@ -27,14 +28,17 @@ export async function GET(req: NextRequest) {
     if (type === 'statement') {
         const customers = await prisma.customer.findMany({
             where: {
+                businessId,
                 isActive: true,
                 ...(customerId ? { id: customerId } : {}),
                 ...(segmentId ? { segmentId } : {}),
+                ...(areaId ? { areaId } : {}),
             },
             include: {
                 segment: { select: { name: true } },
+                area: { select: { name: true } },
                 transactions: {
-                    where: dateFilter,
+                    where: { businessId, ...dateFilter },
                     orderBy: { date: 'asc' },
                     include: { createdBy: { select: { name: true } } },
                 },
@@ -59,7 +63,17 @@ export async function GET(req: NextRequest) {
                     createdBy: t.createdBy.name,
                 }
             })
-            return { customer: { id: c.id, customerNumber: c.customerNumber, name: c.name, segment: c.segment?.name }, rows, closingBalance: balance }
+            return {
+                customer: {
+                    id: c.id,
+                    customerNumber: c.customerNumber,
+                    name: c.name,
+                    segment: c.segment?.name,
+                    area: c.area?.name
+                },
+                rows,
+                closingBalance: balance
+            }
         })
         return NextResponse.json(result)
     }
@@ -68,8 +82,29 @@ export async function GET(req: NextRequest) {
     if (type === 'sales' || type === 'collection') {
         const txnType = type === 'sales' ? 'SALES' : 'COLLECTION'
         const rows = await prisma.transaction.findMany({
-            where: { type: txnType as any, ...dateFilter, ...(customerId ? { customerId } : {}), ...(segmentId ? { customer: { segmentId } } : {}) },
-            include: { customer: { select: { customerNumber: true, name: true, segment: { select: { name: true } } } }, createdBy: { select: { name: true } } },
+            where: {
+                businessId,
+                type: txnType as any,
+                ...dateFilter,
+                ...(customerId ? { customerId } : {}),
+                ...(segmentId || areaId ? {
+                    customer: {
+                        ...(segmentId ? { segmentId } : {}),
+                        ...(areaId ? { areaId } : {})
+                    }
+                } : {})
+            },
+            include: {
+                customer: {
+                    select: {
+                        customerNumber: true,
+                        name: true,
+                        segment: { select: { name: true } },
+                        area: { select: { name: true } }
+                    }
+                },
+                createdBy: { select: { name: true } }
+            },
             orderBy: { date: 'asc' },
         })
         const total = rows.reduce((s: number, r: any) => s + Number(r.amount), 0)
@@ -79,9 +114,15 @@ export async function GET(req: NextRequest) {
     // ── Amount Due ────────────────────────────────────────────────────────────────
     if (type === 'due') {
         const customers = await prisma.customer.findMany({
-            where: { isActive: true, ...(segmentId ? { segmentId } : {}) },
+            where: {
+                businessId,
+                isActive: true,
+                ...(segmentId ? { segmentId } : {}),
+                ...(areaId ? { areaId } : {})
+            },
             include: {
                 segment: { select: { name: true } },
+                area: { select: { name: true } },
                 transactions: { select: { type: true, amount: true } },
             },
             orderBy: { name: 'asc' },
@@ -92,7 +133,14 @@ export async function GET(req: NextRequest) {
                 const amt = Number(t.amount)
                 return t.type === 'COLLECTION' ? sum - amt : sum + amt
             }, 0)
-            return { id: c.id, customerNumber: c.customerNumber, name: c.name, segment: c.segment?.name, due }
+            return {
+                id: c.id,
+                customerNumber: c.customerNumber,
+                name: c.name,
+                segment: c.segment?.name,
+                area: c.area?.name,
+                due
+            }
         }).filter((c: any) => c.due > 0)
 
         const totalDue = result.reduce((s: number, r: any) => s + r.due, 0)

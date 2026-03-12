@@ -28,6 +28,21 @@ enum CustomerIdMode {
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
+model Business {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users            User[]
+  customers        Customer[]
+  segments         CustomerSegment[]
+  areas            CustomerArea[]
+  transactions     Transaction[]
+  settings         AppSettings?
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -39,6 +54,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  business     Business @relation(fields: [businessId], references: [id])
+  businessId   String
+
   // Relations
   customersCreated Customer[]    @relation("CustomerCreatedBy")
   transactions     Transaction[] @relation("TransactionCreatedBy")
@@ -46,24 +64,49 @@ model User {
 
 model CustomerSegment {
   id        String   @id @default(cuid())
-  name      String   @unique
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+
   customers Customer[]
+
+  @@unique([businessId, name])
+}
+
+model CustomerArea {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+
+  customers Customer[]
+
+  @@unique([businessId, name])
 }
 
 model Customer {
   id             String  @id @default(cuid())
-  customerNumber String  @unique   // auto (CUST-0001) or manual
+  customerNumber String  // unique per business
   name           String
   address1       String
   address2       String?
   mobile         String
   isActive       Boolean @default(true)
 
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
+
   segment   CustomerSegment? @relation(fields: [segmentId], references: [id])
   segmentId String?
+
+  area      CustomerArea? @relation(fields: [areaId], references: [id])
+  areaId    String?
 
   createdBy   User   @relation("CustomerCreatedBy", fields: [createdById], references: [id])
   createdById String
@@ -72,6 +115,8 @@ model Customer {
   updatedAt DateTime @updatedAt
 
   transactions Transaction[]
+
+  @@unique([businessId, customerNumber])
 }
 
 model Transaction {
@@ -80,6 +125,9 @@ model Transaction {
   amount Decimal         @db.Decimal(12, 2)
   date   DateTime        @default(now())
   note   String?
+
+  business   Business @relation(fields: [businessId], references: [id])
+  businessId String
 
   customer   Customer @relation(fields: [customerId], references: [id])
   customerId String
@@ -91,11 +139,14 @@ model Transaction {
   updatedAt DateTime @updatedAt
 }
 
-// Stores global app settings (single row)
+// Stores settings per business
 model AppSettings {
-  id             String         @id @default("singleton")
+  id             String         @id @default(cuid())
   customerIdMode CustomerIdMode @default(AUTO)
   customerPrefix String         @default("CUST")   // prefix for auto mode
   nextAutoNumber Int            @default(1)        // next auto-increment number
   updatedAt      DateTime       @updatedAt
+
+  business       Business       @relation(fields: [businessId], references: [id])
+  businessId     String         @unique
 }
