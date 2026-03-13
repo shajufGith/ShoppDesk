@@ -137,6 +137,7 @@ export async function GET(req: NextRequest) {
                 id: c.id,
                 customerNumber: c.customerNumber,
                 name: c.name,
+                mobile: c.mobile,
                 segment: c.segment?.name,
                 area: c.area?.name,
                 due

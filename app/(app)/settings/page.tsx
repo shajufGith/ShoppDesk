@@ -124,7 +124,7 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Segments & Areas Row */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                         {/* Segments */}
                         <div className="card">
                             <p className="section-title">Customer Segments</p>

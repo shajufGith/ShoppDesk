@@ -275,7 +275,14 @@ function ReportsInner() {
                                 {data.rows.map((r: any) => (
                                     <tr key={r.id}>
                                         <td className="text-muted text-xs">{r.customerNumber}</td>
-                                        <td>{r.name}</td>
+                                        <td>
+                                            <div style={{ fontWeight: 500 }}>{r.name}</div>
+                                            {r.mobile && (
+                                                <a href={`tel:${r.mobile}`} className="text-xs" style={{ color: 'var(--brand-primary)', textDecoration: 'none' }}>
+                                                    📞 {r.mobile}
+                                                </a>
+                                            )}
+                                        </td>
                                         <td>{r.area ?? '—'}</td>
                                         <td className="amount-debit font-bold">{fmt(r.due)}</td>
                                     </tr>
