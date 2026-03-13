@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
+import { useSession } from 'next-auth/react'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -23,6 +24,7 @@ function getDateRange(filter: DateFilter): { from?: string; to?: string } {
 }
 
 function ReportsInner() {
+    const { data: session } = useSession()
     const [type, setType] = useState<ReportType>('statement')
     const [dateFilter, setDateFilter] = useState<DateFilter>('all')
     const [customFrom, setCustomFrom] = useState('')
@@ -61,10 +63,12 @@ function ReportsInner() {
     function downloadPDF() {
         if (!data) return
         const doc = new jsPDF()
-        const title = `${type.toUpperCase()} REPORT`
-        doc.text(title, 14, 15)
+        const businessName = session?.user?.businessName || 'ShopDesk'
+        doc.setFontSize(16)
+        doc.text(businessName, 14, 15)
         doc.setFontSize(10)
-        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 22)
+        doc.text(`${type.toUpperCase()} REPORT`, 14, 22)
+        doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 27)
 
         if (type === 'statement' && Array.isArray(data)) {
             data.forEach((c: any, idx: number) => {

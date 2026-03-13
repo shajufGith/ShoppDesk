@@ -93,6 +93,7 @@ model Transaction {
   businessId  String
   customerId  String
   createdById String
+  paymentMode PaymentMode?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   business    Business        @relation(fields: [businessId], references: [id])
@@ -124,4 +125,11 @@ enum TransactionType {
 enum CustomerIdMode {
   AUTO
   MANUAL
+}
+
+enum PaymentMode {
+  CASH
+  GPAY
+  ADJUSTMENT
+  OTHERS
 }

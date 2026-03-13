@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const session = await getBusinessSession()
     if (!session) return unauthorizedResponse()
 
-    const { customerId, type, amount, date, note } = await req.json()
+    const { customerId, type, amount, date, note, paymentMode } = await req.json()
 
     if (!customerId || !type || !amount)
         return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
             amount: parseFloat(amount),
             date: date ? new Date(date) : new Date(),
             note: note || null,
+            paymentMode: paymentMode || null,
             createdById: session.user.id,
         },
         include: {

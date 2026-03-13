@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -36,7 +36,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <header className="top-header">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                     <span style={{ fontSize: '1.3rem' }}>🏪</span>
-                    <span className="header-title">{pageTitle}</span>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span className="header-title" style={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1.1 }}>{session?.user?.businessName}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{pageTitle}</span>
+                    </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
@@ -45,6 +48,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     <span className={`badge ${isManager ? 'badge-purple' : 'badge-blue'}`}>
                         {isManager ? 'Manager' : 'Employee'}
                     </span>
+                    <button className="btn btn-ghost btn-sm" style={{ padding: '0.2rem 0.4rem', color: '#ef4444' }} onClick={() => signOut({ callbackUrl: '/login' })} title="Logout">
+                        LOGOUT
+                    </button>
                 </div>
             </header>
 

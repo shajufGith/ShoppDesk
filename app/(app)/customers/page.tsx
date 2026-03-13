@@ -154,21 +154,19 @@ export default function CustomersPage() {
                                 <label className="form-label">Address 2</label>
                                 <input className="form-input" placeholder="City / Landmark" value={form.address2} onChange={e => setForm(f => ({ ...f, address2: e.target.value }))} />
                             </div>
-                            <div className="form-grid form-grid-2">
-                                <div className="form-group">
-                                    <label className="form-label">Segment</label>
-                                    <select className="form-select" value={form.segmentId} onChange={e => setForm(f => ({ ...f, segmentId: e.target.value }))}>
-                                        <option value="">-- None --</option>
-                                        {segments.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Area</label>
-                                    <select className="form-select" value={form.areaId} onChange={e => setForm(f => ({ ...f, areaId: e.target.value }))}>
-                                        <option value="">-- None --</option>
-                                        {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
-                                    </select>
-                                </div>
+                            <div className="form-group">
+                                <label className="form-label">Segment</label>
+                                <select className="form-select" value={form.segmentId} onChange={e => setForm(f => ({ ...f, segmentId: e.target.value }))}>
+                                    <option value="">-- None --</option>
+                                    {segments.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Area</label>
+                                <select className="form-select" value={form.areaId} onChange={e => setForm(f => ({ ...f, areaId: e.target.value }))}>
+                                    <option value="">-- None --</option>
+                                    {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                                </select>
                             </div>
                             {error && <p className="form-error">{error}</p>}
                             <button id="save-customer-btn" className="btn btn-primary btn-full" onClick={handleSave} disabled={saving}>

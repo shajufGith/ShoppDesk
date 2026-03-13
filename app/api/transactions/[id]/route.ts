@@ -6,7 +6,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const session = await getBusinessSession()
     if (!session) return unauthorizedResponse()
 
-    const { amount, date, note } = await req.json()
+    const { amount, date, note, paymentMode } = await req.json()
 
     // Ensure the transaction belongs to the business
     const existing = await prisma.transaction.findFirst({
@@ -20,6 +20,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             ...(amount !== undefined ? { amount: parseFloat(amount) } : {}),
             ...(date ? { date: new Date(date) } : {}),
             ...(note !== undefined ? { note } : {}),
+            ...(paymentMode !== undefined ? { paymentMode } : {}),
         },
         include: {
             customer: { select: { id: true, customerNumber: true, name: true } },
